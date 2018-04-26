@@ -1,14 +1,11 @@
 let canvas0 = document.getElementById("myCanvas0");
-let ctx0 = canvas0.getContext("2d");
+let ctx0    = canvas0.getContext("2d", {alpha: false});
 let canvas1 = document.getElementById("myCanvas1");
-let ctx1 = canvas1.getContext("2d");
-let canvas2 = document.getElementById("myCanvas2");
-let ctx2 = canvas2.getContext("2d");
+let ctx1    = canvas1.getContext("2d");
 
 //center all origins
 ctx0.translate(canvas0.width / 2, canvas0.width / 2);
 ctx1.translate(canvas1.width / 2, canvas1.width / 2);
-ctx2.translate(canvas2.width / 2, canvas2.width / 2);
 
 //creates black circle around ship
 let radius = canvas0.width / 2;
@@ -17,13 +14,34 @@ ctx0.arc(0, 0, radius, 0, Math.PI * 2, true);
 ctx0.clip();
 
 
-let transforms  = {rotate: 0, thrust: 0, deg: 0, thrustForce: 3, dx: 0, dy: 90};
+let wState  = {
+    rotate: 0, 
+    thrust: 0, 
+    deg: 0, 
+    thrustForce: 2, 
+    dx: 0, 
+    dy: 90,
+    paused: false,
+};
+
+let spawnState = {
+    timer: 0,
+    interval: 60,
+    foodRange: 10,
+    abilityRange: 15,
+};
+
+
 let score = 0;
-let lives = 12;
-//let ship = {x: 250, y: 250, dx: 0, dy: 0};
-let enemySpeed = 2;
-let enemies = {};
+let lifeMeter = 100;
+let foodMeter = 100;
+
+
+let enemySet = {};
 let count = 0;
+
+
+
 //top layer
 function drawShip() {
     ctx1.beginPath();
@@ -34,6 +52,7 @@ function drawShip() {
     ctx1.fill();
     ctx1.closePath();
 }
+
 function drawHaze() {
     ctx1.fillStyle = "rgba(200, 200, 200, 0.002)";
     for(let i = 1; i < radius; i+= 2) {
@@ -43,27 +62,47 @@ function drawHaze() {
         ctx1.closePath();
     }
 }
+
+
 //bottom layer
-function randomEnemy() {
-    let ponRandom = ~~(Math.random() * 2);
-    let randomCoordinate = ponRandom ? ~~(Math.random() * radius): -(~~(Math.random() * radius));
-    let delta  = deltaCoor(randomCoordinate);
-    let chosen = ~~(Math.random() * 4);
-    let rSize  = 1 + ~~(Math.random() * 3);
+function ranStart() {
+    let chosen  = ~~(Math.random() * 4);
+    let ranCoor = ~~(Math.random() * 2) ? ~~(Math.random() * radius): -(~~(Math.random() * radius));
     switch(chosen) {
-        case 0: enemies[count] = {x: -radius, dx: enemySpeed,  y: randomCoordinate, dy: delta,  value: rSize};
-                break;
-        case 1: enemies[count] = {x: radius,  dx: -enemySpeed, y: randomCoordinate, dy: delta,  value: rSize};
-                break;
-        case 2: enemies[count] = {x: randomCoordinate, dx: delta,  y: -radius, dy: enemySpeed,  value: rSize};
-                break;
-        case 3: enemies[count] = {x: randomCoordinate, dx: delta,  y: radius,  dy: -enemySpeed, value: rSize};
-                break;
+        case 0: return {x: -radius, y: ranCoor};
+        case 1: return {x: radius,  y: ranCoor};
+        case 2: return {x: ranCoor, y: -radius};
+        case 3: return {x: ranCoor, y: radius};
     }
-    count++;
 }
-function drawEnemies() {
-    for (enemy in enemies) {
+
+function randomEntity(state, enemies) {
+    if(state.timer == state.interval) {
+        state.timer = 0;
+        let co = ranStart();
+        let speed = 1 + ~~(Math.random() * 4);
+        
+        enemies[count] = {
+            co: co,
+            speed: speed,
+            deltas: deltaCo(co, speed),
+            value: 1 + ~~(Math.random() * 3),
+        };
+        count++;
+    }
+    else {
+        state.timer++;
+    }
+}
+
+/*function entityType() {
+    switch(~~(Math.random() * 100)) {
+        case 
+    };
+}*/
+
+function drawEntities(enemies) {
+    for(enemy in enemies) {
         let e = enemies[enemy];
         if(e.x <  -radius || e.x > radius || e.y <  -radius || e.y > radius) {
             score += e.value;
@@ -71,32 +110,42 @@ function drawEnemies() {
         } 
         else {
             enemyBuilder(e);
-            if(transforms.thrust) {
-                e.x += e.dx + ((transforms.dx / 90) * transforms.thrust) * transforms.thrustForce;
-                e.y += e.dy + ((transforms.dy / 90) * transforms.thrust) * transforms.thrustForce;
+            if(wState.thrust) {
+                e.co.x += e.deltas.dx + ((wState.dx / 90) * wState.thrust) * wState.thrustForce;
+                e.co.y += e.deltas.dy + ((wState.dy / 90) * wState.thrust) * wState.thrustForce;
             }
             else {
-                e.x += e.dx;
-                e.y += e.dy;
+                e.co.x += e.deltas.dx;
+                e.co.y += e.deltas.dy;
             }
         }
     }
 }
+
 function enemyBuilder(e) {
     ctx0.beginPath();
-    ctx0.arc(e.x, e.y, e.value * 5, 0, Math.PI * 2);
+    ctx0.arc(e.co.x, e.co.y, e.value * 5, 0, Math.PI * 2);
     ctx0.fillStyle = "#a00";
     ctx0.fill();
     ctx0.closePath();
 }
-function deltaCoor(xoy) {
-    return (0 - xoy) / (radius / enemySpeed);
+
+function deltaCo(co, speed) {
+    if(co.x < radius && co.x > -radius) {
+        return {dx: (0 - co.x) / (radius / speed), dy: (co.y < 0) ? speed: -speed};
+    }
+    else{
+        return {dx: (co.x < 0) ? speed: -speed, dy: (0 - co.y) / (radius / speed)};
+    }
 }
+
 function abs(n) {
     return (n ^ (n >> 31)) - (n >> 31);
 }
+
+
 //world motion logic
-function transformScreen(trans) {
+function wStatecreen(trans) {
     if(trans.rotate) {
         trans.deg = (trans.rotate + trans.deg) % 360; //posible bitwise operation for speed up?
         ctx0.rotate((Math.PI / 180) * trans.rotate);
@@ -111,6 +160,8 @@ function transformScreen(trans) {
         }
     }
 }
+
+
 //temporary compass
 function drawCompas(){
     ctx0.font = '48px serif';
@@ -119,93 +170,112 @@ function drawCompas(){
     ctx0.fillText('S', 0, 200);
     ctx0.fillText('W', -200, 0);
 }
+
+
 //Thruster logic
-function drawThrusters() {
-    if(transforms.rotate) {
-        if(transforms.rotate === 1) {
+function drawThrusters(world) {
+    ctx0.rotate((Math.PI / 180) * -world.deg);
+    if(wState.rotate) {
+        if(wState.rotate === 1) {
             rightThruster();
         }
         else {
             leftThruster();
         }
     }
-    else if(transforms.thrust) {
+    else if(wState.thrust) {
         rightThruster();
         leftThruster();
     }
+    ctx0.rotate((Math.PI / 180) * world.deg);
 }
+
 function rightThruster() {
-    ctx2.beginPath();
-    ctx2.moveTo(10, 0);
-    ctx2.lineTo(0, 0);
-    ctx2.lineTo(5, 10);
-    ctx2.fillStyle = "#aa0";
-    ctx2.fill();
-    ctx2.closePath();
+    ctx0.beginPath();
+    ctx0.moveTo(10, 0);
+    ctx0.lineTo(0, 0);
+    ctx0.lineTo(5, 10);
+    ctx0.fillStyle = "#aa0";
+    ctx0.fill();
+    ctx0.closePath();
 }
+
 function leftThruster() {
-    ctx2.beginPath();
-    ctx2.moveTo(-10, 0);
-    ctx2.lineTo(0, 0);
-    ctx2.lineTo(-5, 10);
-    ctx2.fillStyle = "#aa0";
-    ctx2.fill();
-    ctx2.closePath();
+    ctx0.beginPath();
+    ctx0.moveTo(-10, 0);
+    ctx0.lineTo(0, 0);
+    ctx0.lineTo(-5, 10);
+    ctx0.fillStyle = "#aa0";
+    ctx0.fill();
+    ctx0.closePath();
 }
+
+
 //controls
 function keyDownHandler(e) {
     if(e.key == "ArrowRight" || e.key == "d") {
-        transforms.rotate = 1;
+        wState.rotate = 1;
     }
     else if(e.key == "ArrowLeft" || e.key == "a") {
-        transforms.rotate = -1;
+        wState.rotate = -1;
     }
     else if(e.key == "ArrowUp" || e.key == "w") {
-        transforms.thrust = 1;
+        wState.thrust = 1;
     }
     else if(e.key == "ArrowDown" || e.key == "s") {
-        transforms.thrust = -1;
+        wState.thrust = -1;
     }
     else if(e.key == " ") {
         document.getElementById("game").mozRequestFullScreen();
+    }
+    else if(e.key == "p") {
+        wState.paused ^= 1;
+        console.log(wState.paused);
     }
 }
 
 function keyUpHandler(e) {
     if(e.key == "ArrowRight" || e.key == "d") {
-    transforms.rotate = 0;
+    wState.rotate = 0;
     }
     else if(e.key == "ArrowLeft" || e.key == "a") {
-        transforms.rotate = 0;
+        wState.rotate = 0;
     }
     else if(e.key == "ArrowUp" || e.key == "w") {
-        transforms.thrust = 0;
+        wState.thrust = 0;
     }
     else if(e.key == "ArrowDown" || e.key == "s") {
-        transforms.thrust = 0;
+        wState.thrust = 0;
     }
 }
 
-function draw() {
-    ctx0.clearRect( -radius,  -radius, 1000, 1000);
-    transformScreen(transforms);
-    drawCompas();
-    drawEnemies();
-    drawThrusters();
-    requestAnimationFrame(draw);
+
+//setup
+function draw0() {
+    if(!wState.paused) {
+        //frames++
+        ctx0.clearRect( -radius,  -radius, 1000, 1000);
+        wStatecreen(wState);
+        randomEntity(spawnState, enemySet);
+        drawCompas();
+        drawThrusters(wState);
+        drawEntities(enemySet);
+    }
+    requestAnimationFrame(draw0);
 }
 
-function draw2() {
-    ctx2.clearRect(-10, 0, 20, 10);
-    drawThrusters();
-    requestAnimationFrame(draw2);
+function draw1() {
+    drawHaze();
+    drawShip();
 }
+
 
 document.addEventListener("keydown",   keyDownHandler, false);
 document.addEventListener("keyup",     keyUpHandler,   false);
 
-setInterval(randomEnemy, 3000);
-drawHaze();
-drawShip();
-draw();
-draw2();
+let frames = 0;
+
+//setInterval(function () {console.log(frames)}, 1000);
+
+draw0();
+draw1();
