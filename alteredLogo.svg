@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Generator: Adobe Illustrator 21.1.0, SVG Export Plug-In . SVG Version: 6.00 Build 0)  -->
+<svg version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px"
+	 viewBox="0 0 300 300" style="enable-background:new 0 0 300 300;" xml:space="preserve" width="1024px" height="1024px">
+<style type="text/css">
+	.st0{opacity:1;fill:none;stroke:#F05B89;stroke-width:3;stroke-miterlimit:10;}
+</style>
+<g id="Layer_1_copy_6">
+	<path class="st0" d="M175,200c-25,15-55,5-70-20s-5-55,20-70S275,85,275,85S200,190,175,200z"/>
+
+	<path class="st0" d="M175,115c25,15,30,45,20,70c-15,25-45,30-70,20c-25-15-100-115-100-115S150,100,175,115z"/>
+
+	<path class="st0" d="M100,160c0-30,20-50,50-50s50,20,50,50c0,30-50,145-50,145S100,185,100,155z"/>
+
+	<path class="st0" d="M125,115c25-15,55-5,70,20s5,55-20,70c-25,15-150,30-150,30S100,130,125,115z"/>
+
+	<path class="st0" d="M125,200c-25-15-30-45-20-70s45-30,70-20C200,125,275,230,275,230S150,215,125,200z"/>
+
+	<path class="st0" d="M200,155c0,30-20,50-50,50s-50-20-50-50c0-30,50-145,50-145S200,130,200,160z"/>
+</g>
+</svg>

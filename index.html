@@ -6,9 +6,29 @@
         <link rel="stylesheet" href="game.css">
     </head>
     <body>
-        <div id="game">
-            <canvas id="myCanvas0" width="1000" height="1000"></canvas> 
-            <canvas id="myCanvas1" width="1000" height="1000"></canvas>
+        <div id="gameContainer" >
+            <menu class="center" id="startMenu">
+                <button class="UI start"   id="play">PLAY</button>
+                <button class="UI start"   id="startOptions">Options</button>
+            </menu>
+            <menu class="center" id="optionsMenu">
+                <button class="UI option"  id="easy">easy</button>
+                <button class="UI option"  id="medium">medium</button>
+                <button class="UI option"  id="hard">hard</button>
+                <button class="UI option"  id="AI">It learns</button>
+                <button class="UI option"  id="back">arrow</button>
+                <button class="UI option"  id="fullScreen">FS</button>
+            </menu>
+            <menu class="center" id="pauseMenu">
+                <button class="UI pause"   id="resume">Resume</button>
+                <button class="UI pause"   id="restart">Restart</button>
+                <button class="UI pause"   id="pauseOptions">Options</button>
+                <button class="UI pause"   id="quit">Quit</button>
+            </menu>
+            <div id="game">
+                <canvas class="center" id="myCanvas0" width="1080" height="1080"></canvas> 
+                <canvas class="center" id="myCanvas1" width="1080" height="1080"></canvas>
+            </div>
         </div>
         <script src="game.js" ></script>
     </body>

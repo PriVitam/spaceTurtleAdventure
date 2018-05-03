@@ -3,18 +3,123 @@
     margin: 0;
 }
 
+html {
+    height: 100%;
+    background: linear-gradient(#FAD6A5, black);
+}
 
-canvas {
-    background: "rgba(0, 0, 0, 0.0)"; 
-    display: block; 
+.center {
+    /*display: block; */
     margin: 0 auto; 
-    position:absolute; 
-    left: calc((100vw - 100vh) / 2);
-    height: 100vh;
-    top: 0vh;
+    position: absolute; 
+    left: calc((100vw - 100vmin) / 2);
+    top: calc((100vh - 100vmin) / 2);
+    width: 100vmin;
+    height: 100vmin;
 } 
 
+.UI {
+    border: none;
+    border-radius: 1em;
+}
 
-#myCanvas0 {
-    background: #000;
+#gameContainer {
+    background: linear-gradient(#FAD6A5, black);
+}
+
+#game {
+    z-index: 0;
+    display: none;
+}
+
+#startMenu {
+    display: grid;
+    grid-template: "a   a   a   a   a   a   " 1fr
+                   "b   p   p   p   p   c   " 2fr
+                   "b   p   p   p   p   c   " 2fr
+                   "b   d   d   d   d   c   " 1fr
+                   "b   o   o   o   o   c   " 2fr
+                   "b   e   e   e   e   c   " 2fr
+                   "b   e   e   e   e   c   " 2fr
+                   /1fr 1fr 1fr 1fr 1fr 1fr;
+}
+
+#play {
+    grid-area: p;
+}
+
+#startOptions {
+    grid-area: o;
+}
+
+#optionsMenu{
+    display: none;
+    z-index: 1;
+    grid-template: "a   a   a   a   a   a   a   " 1fr
+                   "b   ey  ey  s0  mm  mm  c   " 2fr
+                   "b   s   s   s   s   s   c   " 1%
+                   "b   hd  hd  s1  ai  ai  c   " 2fr
+                   "b   d   d   d   d   d   c   " 2fr
+                   "b   d   d   d   d   d   c   " 2fr
+                   "b   bk  d0  d0  d0  fn  c   " 1fr
+                   "b   d1  d1  d1  d1  d1  c   " 2fr
+                   /1fr 1fr 1fr 1%  1fr 1fr 1fr;
+}
+
+#easy {
+    grid-area: ey;
+}
+
+#medium {
+    grid-area: mm;
+}
+
+#hard {
+    grid-area: hd;
+}
+
+#AI {
+    grid-area: ai;
+}
+
+#back {
+    grid-area: bk;
+    width: 50%;
+}
+
+#fullScreen {
+    grid-area: fn;
+    width: 50%;
+    justify-self: end;
+}
+
+#pauseMenu {
+    z-index: 1;
+    display: none;
+    grid-template: "a   a   a   a   a   a   " 1fr
+                   "b   re  re  re  re  c   " 2fr
+                   "b   s   s   s   s   c   " 1%
+                   "b   rt  rt  rt  rt  c   " 2fr
+                   "b   d   d   d   d   c   " 1%
+                   "b   ps  ps  ps  ps  c   " 2fr
+                   "b   e   e   e   e   c   " 1%
+                   "b   qt  qt  qt  qt  c   " 2fr
+                   "b   f   f   f   f   c   " 1fr
+                   /1fr 1fr 1fr 1fr 1fr 1fr; 
+}
+
+#resume {
+    grid-area: re;
+}
+
+#restart {
+    grid-area: rt;
+}
+
+#pauseOptions {
+    grid-area: ps;
+}
+
+#quit {
+    grid-area: qt;
 }

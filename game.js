@@ -4,16 +4,15 @@ let canvas1 = document.getElementById("myCanvas1");
 let ctx1    = canvas1.getContext("2d");
 
 //center all origins
-ctx0.translate(canvas0.width / 2, canvas0.width / 2);
-ctx1.translate(canvas1.width / 2, canvas1.width / 2);
+ctx0.translate(canvas0.width / 2, canvas0.height / 2);
+ctx1.translate(canvas1.width / 2, canvas1.height / 2);
+let radius = canvas0.height / 2;
 
-//creates black circle around ship
-let radius = canvas0.width / 2;
-ctx0.beginPath();
-ctx0.arc(0, 0, radius, 0, Math.PI * 2, true);
-ctx0.clip();
+function draw(e) {
+    ctx0.drawImage(e.image, e.x, e.y, e.width, e.height);
+}
 
-
+//World
 let wState  = {
     rotate: 0, 
     thrust: 0, 
@@ -22,24 +21,45 @@ let wState  = {
     dx: 0, 
     dy: 90,
     paused: false,
+    alive: true,
 };
 
 let spawnState = {
     timer: 0,
-    interval: 60,
+    interval: 180,
     foodRange: 10,
     abilityRange: 15,
 };
 
+let hud = {
+    score: {
+        value: 0,
+        x: 0,
+        y: 0, 
+    },
 
-let score = 0;
-let lifeMeter = 100;
-let foodMeter = 100;
+    lifeMeter: {
+        vale: 100,
+        x: 0,
+        y: 0,
+    },
 
+    foodMeter: {
+        value: 100,
+        x: 0,
+        y: 0,
+    },
+};
 
-let enemySet = {};
+let entites = {
+
+};
+
+let entitySet = {};
 let count = 0;
 
+let logo = new Image();
+logo.src ="blueberry.jpg";
 
 
 //top layer
@@ -54,13 +74,15 @@ function drawShip() {
 }
 
 function drawHaze() {
-    ctx1.fillStyle = "rgba(200, 200, 200, 0.002)";
-    for(let i = 1; i < radius; i+= 2) {
-        ctx1.beginPath();
-        ctx1.arc(0, 0, i, 0, Math.PI * 2);
-        ctx1.fill();
-        ctx1.closePath();
-    }
+    var radgrad = ctx1.createRadialGradient(0, 0, 0, 0, 0, 540);
+    radgrad.addColorStop(0, 'rgba(200, 200, 200, 0.5)');
+    radgrad.addColorStop(1, 'rgba(0, 0, 0, 1)');
+    ctx1.fillStyle = radgrad;
+    ctx1.fillRect(-920, -920, 1920, 1920);
+}
+
+function drawHUD(hud) {
+
 }
 
 
@@ -77,6 +99,7 @@ function ranStart() {
 }
 
 function randomEntity(state, enemies) {
+    console.log("e spawn");
     if(state.timer == state.interval) {
         state.timer = 0;
         let co = ranStart();
@@ -109,7 +132,8 @@ function drawEntities(enemies) {
             delete enemies[enemy]; // don't use delete e, wont delete enemy from enemies object SLOWS DOWN
         } 
         else {
-            enemyBuilder(e);
+            entityDraw(e);
+            //entityLocUpdate(e);
             if(wState.thrust) {
                 e.co.x += e.deltas.dx + ((wState.dx / 90) * wState.thrust) * wState.thrustForce;
                 e.co.y += e.deltas.dy + ((wState.dy / 90) * wState.thrust) * wState.thrustForce;
@@ -122,12 +146,19 @@ function drawEntities(enemies) {
     }
 }
 
-function enemyBuilder(e) {
-    ctx0.beginPath();
-    ctx0.arc(e.co.x, e.co.y, e.value * 5, 0, Math.PI * 2);
-    ctx0.fillStyle = "#a00";
-    ctx0.fill();
-    ctx0.closePath();
+function entityDraw(e) {
+    ctx0.drawImage(logo, e.co.x - e.value * 10, e.co.y - e.value * 10, e.value * 20, e.value * 20);
+}
+
+function entityLocUpdate(e) {
+    if(wState.thrust) {
+        e.co.x += e.deltas.dx + ((wState.dx / 90) * wState.thrust) * wState.thrustForce;
+        e.co.y += e.deltas.dy + ((wState.dy / 90) * wState.thrust) * wState.thrustForce;
+    }
+    else {
+        e.co.x += e.deltas.dx;
+        e.co.y += e.deltas.dy;
+    }
 }
 
 function deltaCo(co, speed) {
@@ -159,16 +190,6 @@ function wStatecreen(trans) {
             trans.dy = -(90 - abs(trans.dx));
         }
     }
-}
-
-
-//temporary compass
-function drawCompas(){
-    ctx0.font = '48px serif';
-    ctx0.fillText('N', 0, -200);
-    ctx0.fillText('E', 200, 0);
-    ctx0.fillText('S', 0, 200);
-    ctx0.fillText('W', -200, 0);
 }
 
 
@@ -211,7 +232,123 @@ function leftThruster() {
 }
 
 
-//controls
+//UI controls
+function menuInput(e) {
+    switch(e.target.id) {
+        case "play":        playGame();
+            break;
+        case "startOptions":optionsMenu(true);
+            break;
+        case "easy":        easy();
+            break;
+        case "medium":      medium();
+            break;
+        case "hard":        hard();
+            break;
+        case "AI":          ai();
+            break;
+        case "back":        back(wState.paused);
+            break;
+        case "fullScreen":  fullScreen();
+            break;
+        case "resume":      resume();
+            break;
+        case "restart":     restart();
+            break;
+        case "pauseOptions":optionsMenu(false);
+            break;
+        case "quit":        quit();
+            break;
+    }
+}
+
+function playGame() {
+    console.log("play called");
+    document.getElementById("startMenu").style.display = "none";
+    document.getElementById("game").style.display = "block";
+    wState.alive = true;
+    draw0(wState, spawnState, entitySet, ctx0);
+    draw1();
+}
+
+function optionsMenu(b) {
+    console.log("options called");
+    if(b) {
+        document.getElementById("startMenu").style.display = "none";
+        document.getElementById("optionsMenu").style.display = "grid";
+    }
+    else {
+        document.getElementById("pauseMenu").style.display = "none";
+        document.getElementById("optionsMenu").style.display = "grid";
+    }
+}
+
+function easy() {
+    console.log("easy called");
+}
+
+function medium() {
+    console.log("medium called");
+}
+
+function hard() {
+    console.log("hard called");
+}
+
+function ai() {
+    console.log("ai called");
+}
+
+function back(paused) {
+    console.log("back called");
+    if(paused) {
+        document.getElementById("pauseMenu").style.display = "grid";
+        document.getElementById("optionsMenu").style.display = "none"; 
+    } 
+    else {
+        document.getElementById("startMenu").style.display = "grid";
+        document.getElementById("optionsMenu").style.display = "none";
+    } 
+    
+}
+
+function fullScreen() {
+    document.getElementById("gameContainer").mozRequestFullScreen();
+}
+
+function resume() {
+    console.log("resume called");
+    document.getElementById("pauseMenu").style.display = "none";
+    wState.paused ^= 1;
+}
+
+function restart() {
+    killGame();
+    wState.alive = true;
+    draw0(wState, spawnState, entitySet, ctx0);
+    draw1();
+    document.getElementById("pauseMenu").style.display = "none";
+}
+
+function quit() {
+    console.log("quit called");
+    killGame();
+    document.getElementById("pauseMenu").style.display = "none";
+    document.getElementById("startMenu").style.display = "grid";
+    document.getElementById("game").style.display = "none";
+}
+
+function killGame() {
+    console.log("kill called");
+    ctx0.clearRect( -970,  -970, 1920, 1920);
+    ctx1.clearRect( -970,  -970, 1920, 1920);
+    entitySet = {};
+    wState.alive = false;
+    wState.paused = false;
+}
+
+
+//player controls
 function keyDownHandler(e) {
     if(e.key == "ArrowRight" || e.key == "d") {
         wState.rotate = 1;
@@ -225,12 +362,9 @@ function keyDownHandler(e) {
     else if(e.key == "ArrowDown" || e.key == "s") {
         wState.thrust = -1;
     }
-    else if(e.key == " ") {
-        document.getElementById("game").mozRequestFullScreen();
-    }
     else if(e.key == "p") {
         wState.paused ^= 1;
-        console.log(wState.paused);
+        document.getElementById("pauseMenu").style.display = "grid";    
     }
 }
 
@@ -251,31 +385,38 @@ function keyUpHandler(e) {
 
 
 //setup
-function draw0() {
+function draw0(wState, sState, eSet, ctx) {
     if(!wState.paused) {
         //frames++
-        ctx0.clearRect( -radius,  -radius, 1000, 1000);
+        ctx.clearRect( -970,  -970, 1920, 1920);
         wStatecreen(wState);
-        randomEntity(spawnState, enemySet);
-        drawCompas();
+        randomEntity(sState, eSet);
         drawThrusters(wState);
-        drawEntities(enemySet);
+        drawEntities(eSet);
     }
-    requestAnimationFrame(draw0);
+    if(wState.alive){
+        requestAnimationFrame(function(){
+            draw0(wState, sState, eSet, ctx);
+        });
+    }
+    
 }
 
 function draw1() {
     drawHaze();
+    drawHUD(hud);
     drawShip();
-}
+}   
 
+
+//add handlers
 
 document.addEventListener("keydown",   keyDownHandler, false);
 document.addEventListener("keyup",     keyUpHandler,   false);
-
-let frames = 0;
+for (button of document.getElementsByClassName("UI")) {
+    button.addEventListener("click", menuInput, false);
+}
+//let frames = 0;
 
 //setInterval(function () {console.log(frames)}, 1000);
-
-draw0();
-draw1();
+//console.log(ctx);
