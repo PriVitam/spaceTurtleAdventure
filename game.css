@@ -5,7 +5,7 @@
 
 html {
     height: 100%;
-    background: linear-gradient(#FAD6A5, black);
+    background: radial-gradient(rgba(250, 214, 165, 0.6), black);
 }
 
 .center {
@@ -28,8 +28,12 @@ html {
 }
 
 #game {
-    z-index: 0;
+    z-index: 1;
     display: none;
+}
+
+.myCanvas0 {
+    background-color: black;
 }
 
 #startMenu {
@@ -98,13 +102,11 @@ html {
     display: none;
     grid-template: "a   a   a   a   a   a   " 1fr
                    "b   re  re  re  re  c   " 2fr
-                   "b   s   s   s   s   c   " 1%
-                   "b   rt  rt  rt  rt  c   " 2fr
                    "b   d   d   d   d   c   " 1%
                    "b   ps  ps  ps  ps  c   " 2fr
                    "b   e   e   e   e   c   " 1%
                    "b   qt  qt  qt  qt  c   " 2fr
-                   "b   f   f   f   f   c   " 1fr
+                   "b   f   f   f   f   c   " 2fr
                    /1fr 1fr 1fr 1fr 1fr 1fr; 
 }
 

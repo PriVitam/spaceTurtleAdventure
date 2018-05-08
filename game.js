@@ -1,5 +1,5 @@
 let canvas0 = document.getElementById("myCanvas0");
-let ctx0    = canvas0.getContext("2d", {alpha: false});
+let ctx0    = canvas0.getContext("2d");
 let canvas1 = document.getElementById("myCanvas1");
 let ctx1    = canvas1.getContext("2d");
 
@@ -8,12 +8,9 @@ ctx0.translate(canvas0.width / 2, canvas0.height / 2);
 ctx1.translate(canvas1.width / 2, canvas1.height / 2);
 let radius = canvas0.height / 2;
 
-function draw(e) {
-    ctx0.drawImage(e.image, e.x, e.y, e.width, e.height);
-}
 
 //World
-let wState  = {
+const wState  = {
     rotate: 0, 
     thrust: 0, 
     deg: 0, 
@@ -21,48 +18,95 @@ let wState  = {
     dx: 0, 
     dy: 90,
     paused: false,
-    alive: true,
+    alive: false,
+    fs: false,
 };
 
-let spawnState = {
+const difState = {
+    difMulti: 1.0,
+    bSpeed: 1,
+    tSpeed: 4,
     timer: 0,
     interval: 180,
-    foodRange: 10,
-    abilityRange: 15,
+    foodRange: 100,
+    abilityRange: 200,
+    sRadius: radius,
 };
 
-let hud = {
+const hud = {
     score: {
+        count: 0,
         value: 0,
-        x: 0,
-        y: 0, 
+        x: -500,
+        y: -450,
+        w: 120,
+        h: 48,
+        draw: function(ctx) {
+            ctx.fillStyle = "black";
+            ctx.fillRect(this.x, this.y - 46, this.w, this.h);
+            ctx.fillStyle = "#0f0";
+            ctx.font = '48px serif';
+            ctx.fillText("score: " + this.value, this.x, this.y, this.w);
+            //ctx.fillRect(this.x, this.y, this.w, this.h);
+        }
     },
 
-    lifeMeter: {
-        vale: 100,
-        x: 0,
-        y: 0,
+    health: {
+        value: 1000,
+        x: 200,
+        y: -500,
+        h: 15,
+        draw: function(ctx) {
+            ctx.fillStyle = "black";
+            ctx.clearRect(this.x, this.y, this.value/5, this.h);
+            ctx.fillStyle = "#0f0";
+            ctx.fillRect(this.x, this.y, this.value/5, this.h);
+        }
     },
 
-    foodMeter: {
-        value: 100,
-        x: 0,
-        y: 0,
+    energy: {
+        value: 1000,
+        x: 200,
+        y: -450,
+        h: 15,
+        draw: function(ctx) {
+            ctx.fillStyle = "black";
+            ctx.fillRect(this.x, this.y, this.value/5, this.h);
+            ctx.fillStyle = "#f00";
+            ctx.fillRect(this.x, this.y, this.value/5, this.h);
+        }
+    },
+
+    update: function(thrust, ctx) {
+        if(thrust) {
+            (this.energy.value) ? this.energy.value-- : this.health.value--;
+            (this.energy.value) ? this.energy.draw(ctx) : this.health.draw(ctx);
+        }
+        else {
+            this.score.count++;
+            if(this.score.count == 60){
+                this.score.count = 0;
+                this.score.value++;
+                this.score.draw(ctx);
+            }
+        }
     },
 };
 
-let entites = {
 
+const entities = {
+    entitySet: {},
+    count: 0,
+    type: {},
 };
 
-let entitySet = {};
-let count = 0;
+let ng = {};
 
 let logo = new Image();
 logo.src ="blueberry.jpg";
 
 
-//top layer
+//top layer---------------------------------------------------------------------------------------
 function drawShip() {
     ctx1.beginPath();
     ctx1.moveTo(-10, 0);
@@ -73,20 +117,25 @@ function drawShip() {
     ctx1.closePath();
 }
 
-function drawHaze() {
-    var radgrad = ctx1.createRadialGradient(0, 0, 0, 0, 0, 540);
-    radgrad.addColorStop(0, 'rgba(200, 200, 200, 0.5)');
+function drawHaze(ctx, sRadius) {
+    var radgrad = ctx.createRadialGradient(0, 0, 0, 0, 0, sRadius);
+    radgrad.addColorStop(0, 'rgba(0, 0, 0, 0)');
     radgrad.addColorStop(1, 'rgba(0, 0, 0, 1)');
-    ctx1.fillStyle = radgrad;
-    ctx1.fillRect(-920, -920, 1920, 1920);
+    ctx.fillStyle = radgrad;
+    ctx.fillRect(-920, -920, 1920, 1920);
 }
 
-function drawHUD(hud) {
+function draw1(ctx, h2) {
+    ctx.clearRect( -970,  -970, 1920, 1920);
+    drawHaze(ctx, radius);
+    drawShip();
+    h2.score.draw(ctx);
+    h2.health.draw(ctx);
+    h2.energy.draw(ctx);
+}  
 
-}
 
-
-//bottom layer
+//bottom layer---------------------------------------------------------------------------------------
 function ranStart() {
     let chosen  = ~~(Math.random() * 4);
     let ranCoor = ~~(Math.random() * 2) ? ~~(Math.random() * radius): -(~~(Math.random() * radius));
@@ -98,23 +147,23 @@ function ranStart() {
     }
 }
 
-function randomEntity(state, enemies) {
-    console.log("e spawn");
-    if(state.timer == state.interval) {
-        state.timer = 0;
+function randomEntity(d2, e2) {
+    if(d2.timer == d2.interval) {
+        d2.timer = 0;
         let co = ranStart();
-        let speed = 1 + ~~(Math.random() * 4);
+        let speed = (d2.bSpeed + ~~(Math.random() * d2.tSpeed)) * d2.difMulti;
         
-        enemies[count] = {
+        e2.entitySet[e2.count] = {
             co: co,
             speed: speed,
             deltas: deltaCo(co, speed),
             value: 1 + ~~(Math.random() * 3),
+            index: e2.count,
         };
-        count++;
+        e2.count++;
     }
     else {
-        state.timer++;
+        d2.timer++;
     }
 }
 
@@ -124,36 +173,27 @@ function randomEntity(state, enemies) {
     };
 }*/
 
-function drawEntities(enemies) {
-    for(enemy in enemies) {
-        let e = enemies[enemy];
-        if(e.x <  -radius || e.x > radius || e.y <  -radius || e.y > radius) {
-            score += e.value;
-            delete enemies[enemy]; // don't use delete e, wont delete enemy from enemies object SLOWS DOWN
+function trackEntities(w2, ctx, e2) {
+    for(entity in e2.entitySet) {
+        let e = e2.entitySet[entity];
+        if(e.co.x <  -radius || e.co.x > radius || e.co.y <  -radius || e.co.y > radius) {
+            delete e2.entitySet[e.index]; // don't use delete e, wont delete enemy from enemies object SLOWS DOWN
         } 
         else {
-            entityDraw(e);
-            //entityLocUpdate(e);
-            if(wState.thrust) {
-                e.co.x += e.deltas.dx + ((wState.dx / 90) * wState.thrust) * wState.thrustForce;
-                e.co.y += e.deltas.dy + ((wState.dy / 90) * wState.thrust) * wState.thrustForce;
-            }
-            else {
-                e.co.x += e.deltas.dx;
-                e.co.y += e.deltas.dy;
-            }
+            entityDraw(ctx, e);
+            entityLocUpdate(w2, e);
         }
     }
 }
 
-function entityDraw(e) {
-    ctx0.drawImage(logo, e.co.x - e.value * 10, e.co.y - e.value * 10, e.value * 20, e.value * 20);
+function entityDraw(ctx, e) {
+    ctx.drawImage(logo, e.co.x - e.value * 10, e.co.y - e.value * 10, e.value * 20, e.value * 20);
 }
 
-function entityLocUpdate(e) {
-    if(wState.thrust) {
-        e.co.x += e.deltas.dx + ((wState.dx / 90) * wState.thrust) * wState.thrustForce;
-        e.co.y += e.deltas.dy + ((wState.dy / 90) * wState.thrust) * wState.thrustForce;
+function entityLocUpdate(w, e) {
+    if(w.thrust) {
+        e.co.x += e.deltas.dx + ((w.dx / 90) * w.thrust) * w.thrustForce;
+        e.co.y += e.deltas.dy + ((w.dy / 90) * w.thrust) * w.thrustForce;
     }
     else {
         e.co.x += e.deltas.dx;
@@ -176,39 +216,56 @@ function abs(n) {
 
 
 //world motion logic
-function wStatecreen(trans) {
-    if(trans.rotate) {
-        trans.deg = (trans.rotate + trans.deg) % 360; //posible bitwise operation for speed up?
-        ctx0.rotate((Math.PI / 180) * trans.rotate);
-        let absDeg = abs(trans.deg);
+function wStatecreen(w2, ctx) {
+    if(w2.rotate) {
+        w2.deg = (w2.rotate + w2.deg) % 360;
+        ctx.rotate((Math.PI / 180) * w2.rotate);
+        let absDeg = abs(w2.deg);
         if(absDeg > 270 || absDeg <= 90) {
-            trans.dx += trans.rotate;
-            trans.dy = 90 - abs(trans.dx);
+            w2.dx += w2.rotate;
+            w2.dy = 90 - abs(w2.dx);
         }
         else {
-            trans.dx -= trans.rotate;
-            trans.dy = -(90 - abs(trans.dx));
+            w2.dx -= w2.rotate;
+            w2.dy = -(90 - abs(w2.dx));
         }
     }
 }
 
 
+function draw0(w2, s2, e2, ctx0, ctx1, h2) {
+    if(!w2.paused) {
+        ctx0.clearRect( -970,  -970, 1920, 1920);
+        wStatecreen(w2, ctx0);
+        randomEntity(s2, e2);
+        trackEntities(w2, ctx0, e2);
+        h2.update(w2.thrust, ctx1);
+    }
+    if(w2.alive){
+        requestAnimationFrame(function(){
+            draw0(w2, s2, e2, ctx0, ctx1, h2);
+        });
+    }
+} 
+
+
 //Thruster logic
-function drawThrusters(world) {
-    ctx0.rotate((Math.PI / 180) * -world.deg);
-    if(wState.rotate) {
-        if(wState.rotate === 1) {
+function drawThrusters(w2, ctx) {
+    ctx.rotate((Math.PI / 180) * -w2.deg);
+    if(w2.rotate) {
+        if(w2.rotate === 1) {
             rightThruster();
         }
         else {
             leftThruster();
         }
     }
-    else if(wState.thrust) {
+    else if(w2.thrust) {
         rightThruster();
         leftThruster();
+
     }
-    ctx0.rotate((Math.PI / 180) * world.deg);
+    ctx.rotate((Math.PI / 180) * w2.deg);
 }
 
 function rightThruster() {
@@ -232,28 +289,26 @@ function leftThruster() {
 }
 
 
-//UI controls
+//UI controls-------------------------------------------------------------------------------------
 function menuInput(e) {
     switch(e.target.id) {
-        case "play":        playGame();
+        case "play":        startGame();
             break;
         case "startOptions":optionsMenu(true);
             break;
-        case "easy":        easy();
+        case "easy":        easy(ng.d2);
             break;
-        case "medium":      medium();
+        case "medium":      medium(ng.d2);
             break;
-        case "hard":        hard();
+        case "hard":        hard(ng.d2);
             break;
         case "AI":          ai();
             break;
-        case "back":        back(wState.paused);
+        case "back":        back(ng);
             break;
         case "fullScreen":  fullScreen();
             break;
-        case "resume":      resume();
-            break;
-        case "restart":     restart();
+        case "resume":      pause(ng.w2);
             break;
         case "pauseOptions":optionsMenu(false);
             break;
@@ -262,17 +317,22 @@ function menuInput(e) {
     }
 }
 
-function playGame() {
-    console.log("play called");
+function startGame() {
     document.getElementById("startMenu").style.display = "none";
     document.getElementById("game").style.display = "block";
-    wState.alive = true;
-    draw0(wState, spawnState, entitySet, ctx0);
-    draw1();
+    ng = {
+        w2: {...wState},
+        d2: (ng.d2) ? ng.d2: {...difState},
+        e2: deepCopy(entities),
+        h2: deepCopy(hud),
+    };
+    ng.w2.alive = true;
+    console.log(ng.w2);
+    draw0(ng.w2, ng.d2, ng.e2, ctx0, ctx1, ng.h2);
+    draw1(ctx1, ng.h2);
 }
 
 function optionsMenu(b) {
-    console.log("options called");
     if(b) {
         document.getElementById("startMenu").style.display = "none";
         document.getElementById("optionsMenu").style.display = "grid";
@@ -283,15 +343,15 @@ function optionsMenu(b) {
     }
 }
 
-function easy() {
+function easy(dState) {
     console.log("easy called");
 }
 
-function medium() {
+function medium(dState) {
     console.log("medium called");
 }
 
-function hard() {
+function hard(dState) {
     console.log("hard called");
 }
 
@@ -299,9 +359,8 @@ function ai() {
     console.log("ai called");
 }
 
-function back(paused) {
-    console.log("back called");
-    if(paused) {
+function back(ng) {
+    if(ng.w2) {
         document.getElementById("pauseMenu").style.display = "grid";
         document.getElementById("optionsMenu").style.display = "none"; 
     } 
@@ -313,110 +372,99 @@ function back(paused) {
 }
 
 function fullScreen() {
-    document.getElementById("gameContainer").mozRequestFullScreen();
+    let docE = document.documentElement;
+    if (docE.requestFullscreen) {
+        (document.fullscreen) ? document.exitFullscreen(): docE.requestFullscreen();
+    }
+    else if (docE.mozRequestFullScreen) {
+        (document.mozFullScreen) ? document.mozCancelFullScreen(): docE.mozRequestFullScreen();
+    }
+    else if (docE.webkitRequestFullscreen) {
+        (document.webkitIsFullScreen) ? document.webkitExitFullscreen(): docE.webkitRequestFullScreen();
+    }
 }
 
-function resume() {
-    console.log("resume called");
-    document.getElementById("pauseMenu").style.display = "none";
-    wState.paused ^= 1;
-}
-
-function restart() {
-    killGame();
-    wState.alive = true;
-    draw0(wState, spawnState, entitySet, ctx0);
-    draw1();
-    document.getElementById("pauseMenu").style.display = "none";
+function pause(w2) {
+    if(w2.alive) {
+        w2.paused ^= 1;
+        if(w2.paused) {
+            document.getElementById("pauseMenu").style.display = "grid";
+        }
+        else {
+            document.getElementById("pauseMenu").style.display = "none";
+        }
+    }
 }
 
 function quit() {
-    console.log("quit called");
-    killGame();
+    ng.w2.alive = false;
+    console.log(ng.w2);
+    ng = {};
     document.getElementById("pauseMenu").style.display = "none";
     document.getElementById("startMenu").style.display = "grid";
     document.getElementById("game").style.display = "none";
 }
 
-function killGame() {
-    console.log("kill called");
-    ctx0.clearRect( -970,  -970, 1920, 1920);
-    ctx1.clearRect( -970,  -970, 1920, 1920);
-    entitySet = {};
-    wState.alive = false;
-    wState.paused = false;
-}
 
-
-//player controls
+//player controls------------------------------------------------------------------------------------
 function keyDownHandler(e) {
-    if(e.key == "ArrowRight" || e.key == "d") {
-        wState.rotate = 1;
-    }
-    else if(e.key == "ArrowLeft" || e.key == "a") {
-        wState.rotate = -1;
-    }
-    else if(e.key == "ArrowUp" || e.key == "w") {
-        wState.thrust = 1;
-    }
-    else if(e.key == "ArrowDown" || e.key == "s") {
-        wState.thrust = -1;
-    }
-    else if(e.key == "p") {
-        wState.paused ^= 1;
-        document.getElementById("pauseMenu").style.display = "grid";    
+    if(ng.w2) {
+        if(e.key == "ArrowRight" || e.key == "d") {
+            ng.w2.rotate = 1;
+        }
+        else if(e.key == "ArrowLeft" || e.key == "a") {
+            ng.w2.rotate = -1;
+        }
+        else if(e.key == "ArrowUp" || e.key == "w") {
+            ng.w2.thrust = 1;
+        }
+        else if(e.key == "ArrowDown" || e.key == "s") {
+            ng.w2.thrust = -1;
+        }
+        else if(e.key == "p") {
+            pause(ng.w2);   
+        }
     }
 }
 
 function keyUpHandler(e) {
-    if(e.key == "ArrowRight" || e.key == "d") {
-    wState.rotate = 0;
-    }
-    else if(e.key == "ArrowLeft" || e.key == "a") {
-        wState.rotate = 0;
-    }
-    else if(e.key == "ArrowUp" || e.key == "w") {
-        wState.thrust = 0;
-    }
-    else if(e.key == "ArrowDown" || e.key == "s") {
-        wState.thrust = 0;
-    }
-}
-
-
-//setup
-function draw0(wState, sState, eSet, ctx) {
-    if(!wState.paused) {
-        //frames++
-        ctx.clearRect( -970,  -970, 1920, 1920);
-        wStatecreen(wState);
-        randomEntity(sState, eSet);
-        drawThrusters(wState);
-        drawEntities(eSet);
-    }
-    if(wState.alive){
-        requestAnimationFrame(function(){
-            draw0(wState, sState, eSet, ctx);
-        });
+    if(ng.w2) {
+        if(e.key == "ArrowRight" || e.key == "d") {
+            ng.w2.rotate = 0;
+        }
+        else if(e.key == "ArrowLeft" || e.key == "a") {
+            ng.w2.rotate = 0;
+        }
+        else if(e.key == "ArrowUp" || e.key == "w") {
+            ng.w2.thrust = 0;
+        }
+        else if(e.key == "ArrowDown" || e.key == "s") {
+            ng.w2.thrust = 0;
+        }
     }
     
 }
 
-function draw1() {
-    drawHaze();
-    drawHUD(hud);
-    drawShip();
-}   
 
-
-//add handlers
-
+//add handlers-------------------------------------------------------------------------
 document.addEventListener("keydown",   keyDownHandler, false);
 document.addEventListener("keyup",     keyUpHandler,   false);
 for (button of document.getElementsByClassName("UI")) {
     button.addEventListener("click", menuInput, false);
 }
-//let frames = 0;
 
-//setInterval(function () {console.log(frames)}, 1000);
-//console.log(ctx);
+//setInterval(function () {console.log("end of frame count")}, 1000);\
+
+//poor implementation, don't really care
+function deepCopy(obj) {
+    let r = {};
+    for(key in obj) {
+        if(typeof obj[key] == "object"){
+            r[key] = {...deepCopy(obj[key])};
+        }
+        else {
+            r[key] = obj[key];
+        }
+    }
+    return r;
+}
