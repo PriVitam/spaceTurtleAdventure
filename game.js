@@ -2,10 +2,13 @@ let canvas0 = document.getElementById("myCanvas0");
 let ctx0    = canvas0.getContext("2d");
 let canvas1 = document.getElementById("myCanvas1");
 let ctx1    = canvas1.getContext("2d");
+let canvas2 = document.getElementById("myCanvas2");
+let ctx2    = canvas2.getContext("2d");
 
 //center all origins
 ctx0.translate(canvas0.width / 2, canvas0.height / 2);
-ctx1.translate(canvas1.width / 2, canvas1.height / 2);
+ctx1.translate(canvas0.width / 2, canvas0.height / 2);
+ctx2.translate(canvas0.width / 2, canvas0.height / 2);
 let radius = canvas0.height / 2;
 
 
@@ -20,10 +23,25 @@ const wState  = {
     paused: false,
     alive: false,
     fs: false,
+    rotateWorld: function(ctx) {
+        if(this.rotate) {
+            this.deg = (this.rotate + this.deg) % 360;
+            ctx.rotate((Math.PI / 180) * this.rotate);
+            let absDeg = abs(this.deg);
+            if(absDeg > 270 || absDeg <= 90) {
+                this.dx += this.rotate;
+                this.dy = 90 - abs(this.dx);
+            }
+            else {
+                this.dx -= this.rotate;
+                this.dy = -(90 - abs(this.dx));
+            }
+        }
+    },
 };
 
 const difState = {
-    difMulti: 1.0,
+    difMulti: 1.5,
     bSpeed: 1,
     tSpeed: 4,
     timer: 0,
@@ -46,8 +64,7 @@ const hud = {
             ctx.fillRect(this.x, this.y - 46, this.w, this.h);
             ctx.fillStyle = "#0f0";
             ctx.font = '48px serif';
-            ctx.fillText("score: " + this.value, this.x, this.y, this.w);
-            //ctx.fillRect(this.x, this.y, this.w, this.h);
+            ctx.fillText("score: " + ~~this.value, this.x, this.y, this.w);
         }
     },
 
@@ -76,28 +93,148 @@ const hud = {
             ctx.fillRect(this.x, this.y, this.value/5, this.h);
         }
     },
-
+    //only draw energy and health when necessary
     update: function(thrust, ctx) {
         if(thrust) {
-            (this.energy.value) ? this.energy.value-- : this.health.value--;
-            (this.energy.value) ? this.energy.draw(ctx) : this.health.draw(ctx);
+            (this.energy.value > 0) ? this.energy.value-- : (this.health.value > 0) ? this.health.value-- : gameOver();
         }
         else {
             this.score.count++;
             if(this.score.count == 60){
                 this.score.count = 0;
                 this.score.value++;
-                this.score.draw(ctx);
             }
         }
     },
 };
 
-
 const entities = {
     entitySet: {},
     count: 0,
-    type: {},
+    randomEntity: function(d2) {
+        if(d2.timer == d2.interval) {
+            d2.timer = 0;
+
+            let e = {...entities.type[~~(Math.random() * entities.type.length)]};
+            e.co = ranStart();
+            e.speed = (d2.bSpeed + ~~(Math.random() * d2.tSpeed)) * d2.difMulti;
+            e.value = (1 + ~~(Math.random() * 3)) * d2.difMulti;
+            e.index = this.count;
+            e.image = logo;
+            e.size = e.value * 20;
+            e.deltas = deltaCo(e);
+            this.entitySet[this.count] = {...e};
+            
+            
+            this.count++;
+        }
+        else {
+            d2.timer++;
+        }
+    },
+
+    trackEntities: function(w2, ctx, h2, p2) {
+        for(entity in this.entitySet) {
+            let e = this.entitySet[entity];
+            if(e.co.x <  -radius || e.co.x > radius || e.co.y <  -radius || e.co.y > radius) {
+                if(e.hazard) {
+                    h2.score.value += e.value; 
+                }
+                delete this.entitySet[e.index];
+            }
+            else if(p2.isHit(e)) {
+                if(e.effect) {
+                    e.effect()    
+                }
+                if(e.hazard) {
+                    h2.health.value -= e.size;
+                }
+                delete this.entitySet[e.index];
+            } 
+            else {
+                ctx.drawImage(e.image, e.co.x, e.co.y, e.size, e.size);
+                entityLocUpdate(w2, e);
+            }
+        }
+    },
+
+    type: [
+        {
+            name: "fish",
+            hazard: false,
+            effect: function() {
+
+            },
+         },
+         {
+            name: "seaweed",
+            hazard: false,
+            effect: function() {
+
+            },
+         },
+         {
+            name: "faster",
+            hazard: false,
+            effect: function() {
+
+            },
+         },
+         {
+            name: "heal",
+            hazard: false,
+            effect: function() {
+
+            },
+         },
+         {
+            name: "asteroid1",
+            hazard: true, 
+         },
+         {
+            name: "asteroid2",
+            hazard: true, 
+         },
+         {
+            name: "asteroid3",
+            hazard: true, 
+         },
+         {
+            name: "asteroid4",
+            hazard: true, 
+         },
+    ],
+};
+let turtle = new Image();
+turtle.src = "Player.jpeg";
+
+const player = {
+    x: -50,
+    y: -50,
+    w: 100,
+    h: 100,
+    ani: function(thrust, ctx) {
+        if(thrust < 0){
+            ctx.drawImage(turtle, this.x, this.y, this.w, this.h);
+        }
+        else if(thrust > 0){
+            ctx.drawImage(turtle, this.x, this.y, this.w, this.h);
+        }
+        else{
+            ctx.drawImage(turtle, this.x, this.y, this.w, this.h);
+        }
+    },
+    isHit: function(e) {
+        return(
+            ((e.co.x > this.x) && (e.co.x < this.w + this.x) && (e.co.y > this.y) && (e.co.y < this.h + this.y))
+            || (e.co.x + e.size > this.x) && (e.co.x + e.size < this.w + this.x) && (e.co.y + e.size > this.y) && (e.co.y + e.size < this.h + this.y)
+        );
+    }
+};
+
+let displays = {
+    sMenu: document.getElementById("startMenu"),
+    oMenu: document.getElementById("optionsMenu"),
 };
 
 let ng = {};
@@ -105,9 +242,11 @@ let ng = {};
 let logo = new Image();
 logo.src ="blueberry.jpg";
 
+let fish = new Image();
+fish.src = "logo.svg";
 
 //top layer---------------------------------------------------------------------------------------
-function drawShip() {
+/*function drawShip() {
     ctx1.beginPath();
     ctx1.moveTo(-10, 0);
     ctx1.lineTo(10, 0);
@@ -115,23 +254,31 @@ function drawShip() {
     ctx1.fillStyle = "#0f0";
     ctx1.fill();
     ctx1.closePath();
-}
+}*/
 
-function drawHaze(ctx, sRadius) {
-    var radgrad = ctx.createRadialGradient(0, 0, 0, 0, 0, sRadius);
+function drawFOW(sRadius) {
+    ctx1.clearRect( -970,  -970, 1920, 1920);
+    var radgrad = ctx1.createRadialGradient(0, 0, 0, 0, 0, sRadius);
     radgrad.addColorStop(0, 'rgba(0, 0, 0, 0)');
     radgrad.addColorStop(1, 'rgba(0, 0, 0, 1)');
-    ctx.fillStyle = radgrad;
-    ctx.fillRect(-920, -920, 1920, 1920);
+    ctx1.fillStyle = radgrad;
+    ctx1.fillRect(-920, -920, 1920, 1920);
 }
 
-function draw1(ctx, h2) {
-    ctx.clearRect( -970,  -970, 1920, 1920);
-    drawHaze(ctx, radius);
-    drawShip();
-    h2.score.draw(ctx);
-    h2.health.draw(ctx);
-    h2.energy.draw(ctx);
+function draw2(w2, ctx, h2, p2) {
+    if(!w2.paused) {
+        ctx.clearRect( -970,  -970, 1920, 1920);
+        h2.score.draw(ctx);
+        h2.health.draw(ctx);
+        h2.energy.draw(ctx);
+        h2.update(w2.thrust, ctx);
+        p2.ani(w2.thrust, ctx);
+    } 
+    if(w2.alive){
+        requestAnimationFrame(function(){
+            draw2(w2, ctx, h2, p2);
+        });
+    }
 }  
 
 
@@ -147,48 +294,11 @@ function ranStart() {
     }
 }
 
-function randomEntity(d2, e2) {
-    if(d2.timer == d2.interval) {
-        d2.timer = 0;
-        let co = ranStart();
-        let speed = (d2.bSpeed + ~~(Math.random() * d2.tSpeed)) * d2.difMulti;
-        
-        e2.entitySet[e2.count] = {
-            co: co,
-            speed: speed,
-            deltas: deltaCo(co, speed),
-            value: 1 + ~~(Math.random() * 3),
-            index: e2.count,
-        };
-        e2.count++;
-    }
-    else {
-        d2.timer++;
-    }
-}
-
 /*function entityType() {
     switch(~~(Math.random() * 100)) {
         case 
     };
 }*/
-
-function trackEntities(w2, ctx, e2) {
-    for(entity in e2.entitySet) {
-        let e = e2.entitySet[entity];
-        if(e.co.x <  -radius || e.co.x > radius || e.co.y <  -radius || e.co.y > radius) {
-            delete e2.entitySet[e.index]; // don't use delete e, wont delete enemy from enemies object SLOWS DOWN
-        } 
-        else {
-            entityDraw(ctx, e);
-            entityLocUpdate(w2, e);
-        }
-    }
-}
-
-function entityDraw(ctx, e) {
-    ctx.drawImage(logo, e.co.x - e.value * 10, e.co.y - e.value * 10, e.value * 20, e.value * 20);
-}
 
 function entityLocUpdate(w, e) {
     if(w.thrust) {
@@ -201,12 +311,12 @@ function entityLocUpdate(w, e) {
     }
 }
 
-function deltaCo(co, speed) {
-    if(co.x < radius && co.x > -radius) {
-        return {dx: (0 - co.x) / (radius / speed), dy: (co.y < 0) ? speed: -speed};
+function deltaCo(e) {
+    if(e.co.x < radius && e.co.x > -radius) {
+        return {dx: (-e.size / 2 - e.co.x) / (radius / e.speed), dy: (e.co.y < 0) ? e.speed: -e.speed};
     }
     else{
-        return {dx: (co.x < 0) ? speed: -speed, dy: (0 - co.y) / (radius / speed)};
+        return {dx: (e.co.x < 0) ? e.speed: -e.speed, dy: (-e.size / 2 - e.co.y) / (radius / e.speed)};
     }
 }
 
@@ -215,78 +325,20 @@ function abs(n) {
 }
 
 
-//world motion logic
-function wStatecreen(w2, ctx) {
-    if(w2.rotate) {
-        w2.deg = (w2.rotate + w2.deg) % 360;
-        ctx.rotate((Math.PI / 180) * w2.rotate);
-        let absDeg = abs(w2.deg);
-        if(absDeg > 270 || absDeg <= 90) {
-            w2.dx += w2.rotate;
-            w2.dy = 90 - abs(w2.dx);
-        }
-        else {
-            w2.dx -= w2.rotate;
-            w2.dy = -(90 - abs(w2.dx));
-        }
-    }
-}
 
-
-function draw0(w2, s2, e2, ctx0, ctx1, h2) {
+function draw0(w2, d2, e2, ctx, h2, p2) {
     if(!w2.paused) {
         ctx0.clearRect( -970,  -970, 1920, 1920);
-        wStatecreen(w2, ctx0);
-        randomEntity(s2, e2);
-        trackEntities(w2, ctx0, e2);
-        h2.update(w2.thrust, ctx1);
+        w2.rotateWorld(ctx0);
+        e2.randomEntity(d2);
+        e2.trackEntities(w2, ctx, h2, p2);
     }
     if(w2.alive){
         requestAnimationFrame(function(){
-            draw0(w2, s2, e2, ctx0, ctx1, h2);
+            draw0(w2, d2, e2, ctx, h2, p2);
         });
     }
 } 
-
-
-//Thruster logic
-function drawThrusters(w2, ctx) {
-    ctx.rotate((Math.PI / 180) * -w2.deg);
-    if(w2.rotate) {
-        if(w2.rotate === 1) {
-            rightThruster();
-        }
-        else {
-            leftThruster();
-        }
-    }
-    else if(w2.thrust) {
-        rightThruster();
-        leftThruster();
-
-    }
-    ctx.rotate((Math.PI / 180) * w2.deg);
-}
-
-function rightThruster() {
-    ctx0.beginPath();
-    ctx0.moveTo(10, 0);
-    ctx0.lineTo(0, 0);
-    ctx0.lineTo(5, 10);
-    ctx0.fillStyle = "#aa0";
-    ctx0.fill();
-    ctx0.closePath();
-}
-
-function leftThruster() {
-    ctx0.beginPath();
-    ctx0.moveTo(-10, 0);
-    ctx0.lineTo(0, 0);
-    ctx0.lineTo(-5, 10);
-    ctx0.fillStyle = "#aa0";
-    ctx0.fill();
-    ctx0.closePath();
-}
 
 
 //UI controls-------------------------------------------------------------------------------------
@@ -325,17 +377,20 @@ function startGame() {
         d2: (ng.d2) ? ng.d2: {...difState},
         e2: deepCopy(entities),
         h2: deepCopy(hud),
+        p2: deepCopy(player),
     };
     ng.w2.alive = true;
-    console.log(ng.w2);
-    draw0(ng.w2, ng.d2, ng.e2, ctx0, ctx1, ng.h2);
-    draw1(ctx1, ng.h2);
+    draw0(ng.w2, ng.d2, ng.e2, ctx0, ng.h2, ng.p2);
+    drawFOW(ng.d2.sRadius);
+    draw2(ng.w2, ctx2, ng.h2, ng.p2);
 }
 
 function optionsMenu(b) {
     if(b) {
-        document.getElementById("startMenu").style.display = "none";
+        //document.getElementById("startMenu").style.display = "none";
         document.getElementById("optionsMenu").style.display = "grid";
+        displays.sMenu.style.display = "none";
+        //displays.oMenu = "grid";
     }
     else {
         document.getElementById("pauseMenu").style.display = "none";
@@ -398,11 +453,14 @@ function pause(w2) {
 
 function quit() {
     ng.w2.alive = false;
-    console.log(ng.w2);
     ng = {};
     document.getElementById("pauseMenu").style.display = "none";
     document.getElementById("startMenu").style.display = "grid";
     document.getElementById("game").style.display = "none";
+}
+
+function gameOver() {
+    ng.w2.alive = false;
 }
 
 
