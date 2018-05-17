@@ -4,32 +4,142 @@
         <meta charset="utf-8"/>
         <title>Practice</title>
         <link rel="stylesheet" href="game.css">
+        <link href="https://fonts.googleapis.com/css?family=Oswald" rel="stylesheet">
     </head>
     <body>
         <div id="gameContainer" >
             <menu class="center" id="startMenu">
-                <button class="UI start"   id="play">PLAY</button>
-                <button class="UI start"   id="startOptions">Options</button>
+                <button class="UI start"  id="play">PLAY</button>
+                <button class="UI start"  id="startOptions">Options</button>
             </menu>
             <menu class="center" id="optionsMenu">
-                <button class="UI option"  id="easy">easy</button>
-                <button class="UI option"  id="medium">medium</button>
-                <button class="UI option"  id="hard">hard</button>
-                <button class="UI option"  id="AI">It learns</button>
-                <button class="UI option"  id="back">arrow</button>
-                <button class="UI option"  id="fullScreen">FS</button>
+                <button class="UI option" id="easy">easy</button>
+                <button class="UI option" id="medium">medium</button>
+                <button class="UI option" id="hard">hard</button>
+                <button class="UI option" id="AI">It learns</button>
+                <button class="UI option" id="back">arrow</button>
+                <button class="UI option" id="fullScreen">FS</button>
             </menu>
             <menu class="center" id="pauseMenu">
-                <button class="UI pause"   id="resume">Resume</button>
-                <button class="UI pause"   id="pauseOptions">Options</button>
-                <button class="UI pause"   id="quit">Quit</button>
+                <button class="UI pause"  id="resume">Resume</button>
+                <button class="UI pause"  id="pauseOptions">Options</button>
+                <button class="UI pause"  id="quit">Quit</button>
             </menu>
             <div id="game">
                 <canvas class="center" id="myCanvas0" width="1080" height="1080"></canvas>
                 <canvas class="center" id="myCanvas1" width="1080" height="1080"></canvas>
                 <canvas class="center" id="myCanvas2" width="1080" height="1080"></canvas>
             </div>
+            <menu class="center" id="gameOverScreen">
+                <button class="UI gameOver" id="playAgain">Play Again</button>
+                <button class="UI gameOver" id="gameOverQuit">Quit</button>
+            </menu>
         </div>
+
+        <svg>
+            <defs>
+                <symbol>
+                        <svg version="1.1" id="bFish" xmlns="http://www.w3.org/2000/svg"
+                        xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px"
+                       viewBox="0 0 1000 1000" style="enable-background:new 0 0 1000 1000;"
+                        xml:space="preserve" width="1000px" height="588px">
+                        <style type="text/css">
+                            .st1{fill:url(#SVGID_1_)}
+                            .st2{fill:none;stroke:#000000;stroke-width:2;stroke-miterlimit:10;}
+                        </style>
+                        <g>
+                            <linearGradient id="SVGID_1_" gradientUnits="userSpaceOnUse" x1="4.2196" y1="294.0408" x2="997.6978" y2="294.0408">
+                                <stop  offset="0" style="stop-color:#FFFFFF"/>
+                                <stop  offset="1" style="stop-color:#000000"/>
+                            </linearGradient>
+                            <path class="st1" d="M997.7,339.6c0.4,39.6-56.9,70.1-93.3,89.4c-36.1,19.2-72,31.5-104.1,39.3c-8.4,10.5-22.6,25.6-44.2,38.7
+                                c-25.2,15.2-49.1,20.7-63.5,22.9c4.1-11.9,8.4-28.4,9.9-48.4c-9.7,0.3-17,0.2-21.5,0.1c-33-0.7-95-2.1-166.1-6.4
+                                c-13.4,16.9-30.4,35.7-51.6,54.5c-30.9,27.3-61.2,45.9-85.5,58.6c-3.9-28-6.7-58.6-7.8-91.6c-0.4-11.7-0.5-23.2-0.4-34.4
+                                c-83.9-10.4-163.3-26.5-210.4-51.6L47.7,521.2c-6.9,6.9-18.8,2-18.8-7.7C16.4,469.3,4,407.5,4.2,333.1
+                                c0.2-68.1,11-125.3,22.2-167.5c0-4.4,2.6-8.5,6.7-10.2c3.8-1.6,8.5-1.2,12,2.2l125,121c51-39.1,132-76.5,220.5-100.8
+                                c-0.4-0.5-0.7-1-1-1.6c-11.6-21.5,12-69.3,134.7-176.2c15.9,2,45.1,8.1,72.7,29.7c53.4,42.1,56.7,108.5,56.7,125.8
+                                c8.9,1.4,17.6,3.2,26.2,5.2c59.8,14.4,136.3,50.8,160.4,62.2C932.3,266.7,997.3,297.6,997.7,339.6z"/>
+                        <g>
+                            <path class="st2" d="M706.8,362.1c-36.8,2.5-66.3-11.2-70-27.4c-4.2-18.1,21.5-49.2,69.3-58.3"/>
+                            <path class="st2" d="M706.8,448.1c-36.8,2.5-66.3-11.2-70-27.4c-4.2-18.1,21.5-49.2,69.3-58.3"/>
+                            <path class="st2" d="M636.4,405.1c-36.8,2.5-66.3-11.2-70-27.4c-4.2-18.1,21.5-49.2,69.3-58.3"/>
+                            <path class="st2" d="M706.8,276.1c-36.8,2.5-66.3-11.2-70-27.4c-4.2-18.1,21.5-49.2,69.3-58.3"/>
+                            <path class="st2" d="M636.4,319.1c-36.8,2.5-66.3-11.2-70-27.4c-4.2-18.1,21.5-49.2,69.3-58.3"/>
+                            <path class="st2" d="M571.4,362.1c-36.8,2.5-66.3-11.2-70-27.4c-4.2-18.1,21.5-49.2,69.3-58.3"/>
+                            <path class="st2" d="M571.4,276.1c-36.8,2.5-66.3-11.2-70-27.4c-4.2-18.1,21.5-49.2,69.3-58.3"/>
+                            <path class="st2" d="M566,448.1c-36.8,2.5-66.3-11.2-70-27.4c-4.2-18.1,21.5-49.2,69.3-58.3"/>
+                            <path class="st2" d="M501,243.9c-32.2,2.2-58-9.8-61.3-24c-3.6-15.8,18.9-43.1,60.7-51"/>
+                            <path class="st2" d="M501,399.8c-32.2,2.2-58-9.8-61.3-24c-3.6-15.8,18.9-43.1,60.7-51"/>
+                            <path class="st2" d="M501,319.1c-32.2,2.2-58-9.8-61.3-24c-3.6-15.8,18.9-43.1,60.7-51"/>
+                            <path class="st2" d="M439.3,292.2c-32.2,2.2-58-9.8-61.3-24c-3.6-15.8,18.9-43.1,60.7-51"/>
+                            <path class="st2" d="M439.3,367.5c-32.2,2.2-58-9.8-61.3-24c-3.6-15.8,18.9-43.1,60.7-51"/>
+                            <path class="st2" d="M619.3,233.2c-28.8,1.9-51.9-8.8-54.8-21.4c-3.3-14.1,16.9-38.5,54.2-45.6"/>
+                            <path class="st2" d="M330.7,376.2c-28.8,1.9-51.9-8.8-54.8-21.4c-3.3-14.1,16.9-38.5,54.2-45.6"/>
+                            <path class="st2" d="M440.9,433.4c-28.8,1.9-51.9-8.8-54.8-21.4c-3.3-14.1,16.9-38.5,54.2-45.6"/>
+                            <path class="st2" d="M385.8,395.8c-28.8,1.9-51.9-8.8-54.8-21.4c-3.3-14.1,16.9-38.5,54.2-45.6"/>
+                            <path class="st2" d="M377.6,327.5c-28.8,1.9-51.9-8.8-54.8-21.4c-3.3-14.1,16.9-38.5,54.2-45.6"/>
+                            <path class="st2" d="M487.2,462.7c-25,1.7-45.1-7.6-47.6-18.6c-2.8-12.3,14.6-33.4,47.1-39.6"/>
+                            <path class="st2" d="M617.6,468.1c-27,1.8-48.6-8.2-51.3-20.1c-3-13.2,15.8-36,50.8-42.7"/>
+                        </g>
+                        </g>
+                    </svg>
+
+                    <svg id="gEye">
+                        <style type="text/css">
+                            .st3{fill:url(#SVGID_2_);}
+                        </style>
+                        <radialGradient id="SVGID_2_" cx="854" cy="294" r="37.9026" gradientUnits="userSpaceOnUse">
+                            <stop  offset="0" style="stop-color:#FF7300"/>
+                            <stop  offset="0.1239" style="stop-color:#F97C01"/>
+                            <stop  offset="0.3294" style="stop-color:#EA9602"/>
+                            <stop  offset="0.3865" style="stop-color:#E59E03"/>
+                            <stop  offset="0.878" style="stop-color:#E5C500"/>
+                            <stop  offset="0.9944" style="stop-color:#BF6F00"/>
+                        </radialGradient>
+                        <circle class="st3" cx="854" cy="294" r="37.9"/>
+                    </svg>
+
+                    <svg id="sEye">
+                        <style type="text/css">
+                            .st3{fill:#29ABE2;stroke:#000000;stroke-width:4;stroke-miterlimit:10;}
+                            .st4{stroke:#000000;stroke-width:4;stroke-miterlimit:10;}
+                        </style>
+                        <path class="st3" d="M815.5,294.6c0-21.3,17.2-38.5,38.5-38.5c21.3,0,38.5,17.3,38.5,38.5c0,18.1-12.4,33.2-29.2,37.4
+                            c-9.9-13.8-26-22.8-44.3-22.8c-0.2,0-0.5,0-0.7,0C816.5,304.6,815.5,299.7,815.5,294.6z"/>
+                        <circle class="st4" cx="854" cy="294" r="9.6"/>
+                    </svg>
+
+                    <svg id="eEye">
+                        <style type="text/css">
+                            .st3{fill:#F7931E;stroke:#000000;stroke-width:4;stroke-miterlimit:10;}
+                            .st4{stroke:#000000;stroke-width:4;stroke-miterlimit:10;}
+                        </style>
+                        <path class="st3" d="M882.2,320.3c-15,15-39.4,15-54.4,0c-15-15-15-39.4,0-54.4c4.4-4.4,9.6-7.5,15.2-9.4
+                            c11.2,3.1,21.8,9.1,30.6,17.9c8.8,8.8,14.8,19.4,17.9,30.7C889.7,310.6,886.6,315.8,882.2,320.3z"/>
+                        <circle class="st4" cx="859.3" cy="288.7" r="15.5"/>
+                    </svg>
+
+                    <svg id="hEye">
+                        <style type="text/css">
+                            .st3{fill:#3EA472;stroke:#000000;stroke-width:2;stroke-miterlimit:10;}
+                            .st4{fill:url(#SVGID_2_);stroke:#000000;stroke-width:2;stroke-miterlimit:10;}
+                            .st5{stroke:#000000;stroke-width:2;stroke-miterlimit:10;}
+                        </style>
+                        <path class="st3" d="M892.5,294c0,21.3-17.2,38.5-38.5,38.5c-21.3,0-38.5-17.3-38.5-38.5c0-18.1,12.4-33.2,29.2-37.4
+                            c9.9,13.8,26,22.8,44.3,22.8c0.2,0,0.5,0,0.7,0C891.5,283.9,892.5,288.8,892.5,294z"/>
+                        <linearGradient id="SVGID_2_" gradientUnits="userSpaceOnUse" x1="844.6737" y1="267.4489" x2="889.6853" y2="267.4489">
+                            <stop  offset="0" style="stop-color:#FFFFFF"/>
+                            <stop  offset="1" style="stop-color:#000000"/>
+                        </linearGradient>
+                        <path class="st4" d="M889.7,279.4c-0.2,0-0.5,0-0.7,0c-18.3,0-34.4-9-44.3-22.8c3-0.7,6.1-1.1,9.3-1.1
+                            C870.1,255.5,883.9,265.4,889.7,279.4z"/>
+                        <circle class="st5" cx="854" cy="294.6" r="9.6"/>
+                    </svg>
+                </symbol>
+            </defs>
+        </svg>
+
+
         <script src="game.js" ></script>
     </body>
 </html>
